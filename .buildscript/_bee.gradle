@@ -1,0 +1,21 @@
+buildscript {
+    apply from: "../config.gradle"
+}
+
+def configurationAsmDep() {
+    dependencies {
+        implementation(gradleApi())
+        implementation("com.android.tools.build:gradle:$AGP_Version")
+        implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$Kotlin_Version")
+    }
+}
+
+def configurationAgpDep() {
+    dependencies {
+        implementation "org.ow2.asm:asm:$ASM_Version"
+        implementation "org.ow2.asm:asm-util:$ASM_Version"
+        implementation "org.ow2.asm:asm-commons:$ASM_Version"
+        implementation("com.android.tools.build:gradle:$AGP_Version")
+        implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$Kotlin_Version")
+    }
+}

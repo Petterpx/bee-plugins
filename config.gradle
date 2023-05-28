@@ -1,0 +1,5 @@
+ext {
+    Kotlin_Version = "1.7.20"
+    AGP_Version = "7.2.2"
+    ASM_Version = "9.4"
+}

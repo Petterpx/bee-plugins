@@ -1,0 +1,23 @@
+buildscript {
+    apply from: "../config.gradle"
+}
+
+dependencies {
+    implementation(gradleApi())
+    implementation "org.ow2.asm:asm:$ASM_Version"
+    implementation "org.ow2.asm:asm-util:$ASM_Version"
+    implementation "org.ow2.asm:asm-commons:$ASM_Version"
+    implementation("com.android.tools.build:gradle:$AGP_Version")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$Kotlin_Version")
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
