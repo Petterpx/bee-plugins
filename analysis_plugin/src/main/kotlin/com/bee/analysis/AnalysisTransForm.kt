@@ -22,6 +22,6 @@ abstract class AnalysisTransForm : AsmClassVisitorFactory<InstrumentationParamet
     }
 
     override fun isInstrumentable(classData: ClassData): Boolean {
-        return classData.className.contains("MainActivity") && !classData.superClasses.contains("androidx")
+        return !classData.className.contains(".androidx") && !classData.className.contains(".R$")
     }
 }

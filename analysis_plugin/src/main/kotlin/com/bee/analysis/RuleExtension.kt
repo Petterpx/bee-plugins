@@ -7,4 +7,5 @@ package com.bee.analysis
 open class RuleExtension {
     var classNames: Array<String> = emptyArray()
     var packages: Array<String> = emptyArray()
+    var enableLog: Boolean = false
 }

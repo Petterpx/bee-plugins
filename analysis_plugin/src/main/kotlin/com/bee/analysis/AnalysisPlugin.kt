@@ -13,14 +13,14 @@ import org.gradle.api.Project
  */
 class AnalysisPlugin : Plugin<Project> {
     override fun apply(project: Project) {
+        if (!project.plugins.hasPlugin(AppPlugin::class.java)) return
         project.extensions.create(ANALYSIS_EXTENSION, RuleExtension::class.java)
         project.task(TASK_NAME)
 
-        if (project.plugins.hasPlugin(AppPlugin::class.java)) {
-            val androidComponents =
-                project.extensions.getByType(AndroidComponentsExtension::class.java)
-            // 基于variant可实现不同变种的处理逻辑
-            androidComponents.onVariants {
+        val variants = mutableListOf<String>()
+        project.extensions.getByType(AndroidComponentsExtension::class.java).apply {
+            onVariants {
+                variants.add(String.format("transform%sClassesWithAsm", it.name.capitalize()))
                 it.instrumentation.apply {
                     transformClassesWith(
                         AnalysisTransForm::class.java,
@@ -28,6 +28,19 @@ class AnalysisPlugin : Plugin<Project> {
                     ) {}
                     setAsmFramesComputationMode(FramesComputationMode.COPY_FRAMES)
                 }
+            }
+        }
+
+        project.afterEvaluate {
+            val extension = (project.properties[ANALYSIS_EXTENSION] as RuleExtension)
+            MethodAnalysisUtils.initConfig(extension)
+            if (variants.isEmpty()) return@afterEvaluate
+            tasks.firstOrNull { task ->
+                variants.any {
+                    task.name.contains(it)
+                }
+            }?.doLast {
+                MethodAnalysisUtils.end()
             }
         }
     }

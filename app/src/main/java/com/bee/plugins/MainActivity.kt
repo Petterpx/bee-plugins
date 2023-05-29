@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
+    private val aa = print("")
+
     /**
      * 这什么玩意
      * */

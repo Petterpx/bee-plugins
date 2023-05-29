@@ -4,6 +4,10 @@ plugins {
     id 'com.bee.analysis'
 }
 
+analysis {
+    packages = ["java.io.PrintStream"]
+}
+
 android {
     namespace 'com.bee.plugins'
     compileSdk 33
