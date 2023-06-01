@@ -2,7 +2,7 @@ import org.gradle.api.initialization.resolve.RepositoriesMode
 
 pluginManagement {
     repositories {
-        includeBuild("analysis_plugin")
+        includeBuild("plugin_analysis")
         google()
         mavenCentral()
         gradlePluginPortal()
