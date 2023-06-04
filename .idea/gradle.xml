@@ -7,9 +7,14 @@
         <compositeConfiguration>
           <compositeBuild compositeDefinitionSource="SCRIPT">
             <builds>
-              <build path="$PROJECT_DIR$/plugin_analysis" name="plugin_analysis">
+              <build path="$PROJECT_DIR$/bee_analysis/plugin_analysis" name="plugin_analysis">
                 <projects>
-                  <project path="$PROJECT_DIR$/plugin_analysis" />
+                  <project path="$PROJECT_DIR$/bee_analysis/plugin_analysis" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/bee_router/router_plugin" name="router_plugin">
+                <projects>
+                  <project path="$PROJECT_DIR$/bee_router/router_plugin" />
                 </projects>
               </build>
             </builds>
@@ -22,9 +27,16 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/plugin_analysis" />
-            <option value="$PROJECT_DIR$/simple" />
+            <option value="$PROJECT_DIR$/bee_analysis" />
+            <option value="$PROJECT_DIR$/bee_analysis/app" />
+            <option value="$PROJECT_DIR$/bee_analysis/plugin_analysis" />
+            <option value="$PROJECT_DIR$/bee_router" />
+            <option value="$PROJECT_DIR$/bee_router/app" />
+            <option value="$PROJECT_DIR$/bee_router/router_annotations" />
+            <option value="$PROJECT_DIR$/bee_router/router_core" />
+            <option value="$PROJECT_DIR$/bee_router/router_plugin" />
+            <option value="$PROJECT_DIR$/bee_router/router_processor" />
+            <option value="$PROJECT_DIR$/bee_simple" />
           </set>
         </option>
       </GradleProjectSettings>

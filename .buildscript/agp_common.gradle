@@ -1,8 +1,7 @@
-buildscript {
-    apply from: "../config.gradle"
-}
-
 dependencies {
+    def Kotlin_Version = "1.7.20"
+    def AGP_Version = "7.2.2"
+    def ASM_Version = "9.4"
     implementation(gradleApi())
     implementation "org.ow2.asm:asm:$ASM_Version"
     implementation "org.ow2.asm:asm-util:$ASM_Version"
