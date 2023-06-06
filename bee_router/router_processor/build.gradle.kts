@@ -8,6 +8,7 @@ java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
+
 dependencies {
     implementation(project(":bee_router:router_annotations"))
     implementation("com.google.auto.service:auto-service:1.1.0")

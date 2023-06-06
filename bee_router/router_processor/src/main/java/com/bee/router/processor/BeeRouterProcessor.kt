@@ -8,6 +8,7 @@ import java.io.File
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.Processor
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
 
 /**
@@ -22,15 +23,10 @@ class BeeRouterProcessor : AbstractProcessor() {
         roundEnv: RoundEnvironment,
     ): Boolean {
         if (roundEnv.processingOver()) return false
-        println("$TAG-------start")
         // 获得相应路由mapping管理类与json内容
         val (mapping, jsonArray) = mappingManagerToJsonContent(roundEnv) ?: return false
-        // 1. 生成相应的mapping类
-        writeMappingClassManager(mapping)
-        // 2. 生成路由json
-        // ps: root_project_dir是我们给注解处理器传递的参数,具体见 [RouterPlugin]
-        val rootDir = processingEnv.options["root_project_dir"]
-        writeMappingJson(rootDir, jsonArray)
+        // 生成相应的mapping类和doc
+        writeMappingClassManagerAndDoc(mapping, jsonArray)
         println("$TAG-------finish")
         return false
     }
@@ -39,12 +35,17 @@ class BeeRouterProcessor : AbstractProcessor() {
         return mutableSetOf(BeeRouter::class.java.name)
     }
 
+    override fun getSupportedSourceVersion(): SourceVersion {
+        return SourceVersion.RELEASE_8
+    }
+
     private fun mappingManagerToJsonContent(roundEnvironment: RoundEnvironment): Pair<Map<String, String>, JsonArray>? {
         // 获取所有标记了@Router注解类的信息
         val elementsAnnotatedWith = roundEnvironment.getElementsAnnotatedWith(BeeRouter::class.java)
         // 当未收集到@Router注解时，跳过
         if (elementsAnnotatedWith.size < 1) return null
-        println("$TAG------收集到了${elementsAnnotatedWith.size}个使用Router的类信息")
+        println("$TAG-------start")
+        println("$TAG------收集到 ${elementsAnnotatedWith.size} 个使用 [BeeRouter] 的类信息")
         val jsonArray = JsonArray()
         val mapping = mutableMapOf<String, String>()
         elementsAnnotatedWith.forEach {
@@ -64,32 +65,25 @@ class BeeRouterProcessor : AbstractProcessor() {
         return mapping to jsonArray
     }
 
-    private fun writeMappingClassManager(mapping: Map<String, String>) {
-        val className = "RouterMapping_" + System.currentTimeMillis()
+    private fun writeMappingClassManagerAndDoc(mapping: Map<String, String>, jsonArray: JsonArray) {
+        val time = System.currentTimeMillis()
+        val className = "BeeRouterMapping_$time"
+
         val writeMappingClassContent = getMappingClassContent(className, mapping)
-        val mappingFullClassName = "com.petterp.router.mapping.$className"
-        println("$TAG-----> mappingFullClassName = $mappingFullClassName")
-        println("$TAG----->class content=\n$writeMappingClassContent")
+        val mappingFullClassName = "com.bee.router.mapping.$className"
         val source = processingEnv.filer.createSourceFile(mappingFullClassName)
         source.openWriter().use {
             it.write(writeMappingClassContent)
         }
-    }
 
-    private fun writeMappingJson(rootDir: String?, jsonArray: JsonArray) {
-        if (rootDir == null) throw RuntimeException("$rootDir non null!")
-        val rootFile = File(rootDir)
-        if (!rootFile.exists()) throw RuntimeException("$rootDir not exists!")
-        val routerFile = File(rootFile, "router_mapping")
-        if (!routerFile.exists()) routerFile.mkdir()
-        // 这里选择移除router_mapping下的的json,我们希望它只保留最新的一份
-//        else routerFile.listFiles()?.forEach {
-//            it.delete()
-//        }
-        val mappingFile = File(routerFile, "mapping_${System.currentTimeMillis()}.json")
-        mappingFile.bufferedWriter().use {
+        val docName = "BeeRouterMapping_doc_$time.json"
+        val docFile = File(File(source.toUri()).parent, docName)
+        docFile.bufferedWriter().use {
             it.write(jsonArray.toString())
         }
+
+        println("$TAG-----> mappingClassName = $className")
+        println("$TAG-----> mappingClassDoc = $docName")
     }
 
     private fun getRouterJsonObject(url: String, description: String, realPath: String) =
