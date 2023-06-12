@@ -1,6 +1,6 @@
 dependencies {
     def Kotlin_Version = "1.7.20"
-    def AGP_Version = "7.2.2"
+    def AGP_Version = "7.4.1"
     def ASM_Version = "9.4"
     implementation(gradleApi())
     implementation "org.ow2.asm:asm:$ASM_Version"
@@ -11,12 +11,12 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 compileKotlin {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 }
