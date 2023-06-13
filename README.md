@@ -1,6 +1,6 @@
 # BeePlugins 🐝
 
-这是一组 `Gradle` 插件的合集，用于解决一些常见的工程问题，这里也相当于一些ASM技巧练习 :)
+这是一组 `Gradle` 插件的合集，用于解决一些常见的工程问题，这里也相当于个人的一些ASM技巧练习 :)
 
 当然，如果你有更好的 编码、工程 建议，也欢迎随时提出PR，不甚感谢。
 
@@ -8,15 +8,15 @@
 
 ## 预计支持的插件(由易到繁)
 
-- Analysis_Plugin (代码扫描)
+- bee_analysis (代码扫描 / ASM、AGP) ✅
 
   用于判断当前工程中是否存在调用指定包名的情况等。
 
-- Router_Plugin (路由插件)
+- bee_router (路由插件/ APT、ASM、AGP) ✅
 
-  用于收集路由表，并进行路由信息汇总等；
+  简易的路由跳转框架，用于APT生成路由表，ASM进行路由信息插入(适配AGP8)，主要目的是对组件化框架中Gradle部分进行练习；
 
-- Aspectj_Plugin (代码插入)
+- Aspectj_Plugin (代码插入/  APT、ASM、AGP) 👷🏻‍
 
   用于在指定的方法上插入监控代码与健壮性修复；
 
@@ -24,6 +24,6 @@
 
 ## 一些Simple
 
-- simple
+- bee_simple
 
   该工程记录了一些simple示例，如ASM修改方法，新增类等；
