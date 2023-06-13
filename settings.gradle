@@ -22,5 +22,5 @@ include ':bee_simple'
 
 include ':bee_analysis:app'
 
-include ':bee_router:app', ':bee_router:router_core', ':bee_router:router_annotations', ':bee_router:router_processor'
+include ':bee_router:app', ':bee_router:router_core', ':bee_router:router_annotations', ':bee_router:router_apt'
 include ':bee_router:simple_login'

@@ -1,8 +1,9 @@
-package com.bee.simple.test.update
+package com.bee.simple.test.update.add_invoke_time
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.commons.AdviceAdapter
@@ -10,11 +11,15 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
+/**
+ * ASM练习: 对Fruit增加耗时检测
+ * */
 fun main() {
-    val c = FileInputStream(File("simple/src/main/kotlin/com/bee/simple/test/update/cla/Fruit.class"))
-    val outClassPath = "simple/src/main/kotlin/com/bee/simple/test/update/cla/Fruit.class"
+    val c =
+        FileInputStream(File("bee_simple/src/main/kotlin/com/bee/simple/test/update/add_invoke_time/Fruit.class"))
+    val outClassPath = "bee_simple/src/main/kotlin/com/bee/simple/test/update/add_invoke_time/FruitNew.class"
     val cr = ClassReader(c)
-    val cw = ClassWriter(cr, ClassWriter.COMPUTE_MAXS)
+    val cw = ClassWriter(cr, COMPUTE_MAXS)
     val cv = ProfileClassAdapter(cw)
     cr.accept(cv, ClassReader.EXPAND_FRAMES)
 
@@ -76,7 +81,7 @@ class ProfileMethodVisitor(
             mv.visitVarInsn(LLOAD, 2)
             // 计算耗时
             mv.visitInsn(LSUB)
-            mv.visitVarInsn(LSTORE, 3)
+            mv.visitVarInsn(LSTORE, 2)
 
             mv.visitFieldInsn(
                 Opcodes.GETSTATIC,
@@ -85,7 +90,7 @@ class ProfileMethodVisitor(
                 "Ljava/io/PrintStream;",
             )
 
-            mv.visitVarInsn(LLOAD, 3)
+            mv.visitVarInsn(LLOAD, 2)
 
             mv.visitMethodInsn(
                 INVOKEVIRTUAL,

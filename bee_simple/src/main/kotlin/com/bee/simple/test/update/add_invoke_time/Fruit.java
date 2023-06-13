@@ -1,4 +1,4 @@
-package com.bee.simple.test.update;
+package com.bee.simple.test.update.add_invoke_time;
 
 /**
  * @author petterp

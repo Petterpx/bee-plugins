@@ -49,5 +49,5 @@ dependencies {
     implementation(project(mapOf("path" to ":bee_router:simple_login")))
 
     implementation(project(":bee_router:router_core"))
-    kapt(project(":bee_router:router_processor"))
+    "kapt"(project(":bee_router:router_apt"))
 }

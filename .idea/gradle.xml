@@ -33,9 +33,9 @@
             <option value="$PROJECT_DIR$/bee_router" />
             <option value="$PROJECT_DIR$/bee_router/app" />
             <option value="$PROJECT_DIR$/bee_router/router_annotations" />
+            <option value="$PROJECT_DIR$/bee_router/router_apt" />
             <option value="$PROJECT_DIR$/bee_router/router_core" />
             <option value="$PROJECT_DIR$/bee_router/router_plugin" />
-            <option value="$PROJECT_DIR$/bee_router/router_processor" />
             <option value="$PROJECT_DIR$/bee_router/simple_login" />
             <option value="$PROJECT_DIR$/bee_simple" />
           </set>

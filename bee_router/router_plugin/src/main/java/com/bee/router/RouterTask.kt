@@ -1,5 +1,7 @@
 package com.bee.router
 
+import com.bee.router.utils.RouterInject
+import com.bee.router.utils.DocUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
@@ -8,6 +10,7 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
 import java.util.jar.JarEntry
@@ -23,6 +26,10 @@ abstract class RouterTask : DefaultTask() {
     @get:InputFiles
     abstract val jars: ListProperty<RegularFile>
 
+//    @set:Input
+//    abstract var enableDoc: Property<String>
+//    abstract var docPath:Property<String>
+
     @get:InputFiles
     abstract val dirs: ListProperty<Directory>
 
@@ -37,6 +44,7 @@ abstract class RouterTask : DefaultTask() {
         JarOutputStream(output.asFile.get().outputStream()).use { jarOutput ->
             var injectByteArray: ByteArray? = null
             val mappingList = mutableListOf<String>()
+            val docList = mutableListOf<String>()
             // 遍历文件夹 (复制与收集)
             dirs.get().forEach { directory ->
                 val directoryPath =
@@ -45,7 +53,6 @@ abstract class RouterTask : DefaultTask() {
                     } else {
                         directory.asFile.absolutePath + File.separatorChar
                     }
-                println("----dir----> handling: $directoryPath")
                 directory.asFile.walk().asSequence().filter { it.isFile }.forEach dirChild@{ file ->
                     val entryName = if (leftSlash) {
                         file.path.substringAfter(directoryPath)
@@ -53,9 +60,9 @@ abstract class RouterTask : DefaultTask() {
                         file.path.substringAfter(directoryPath).replace(File.separatorChar, '/')
                     }
                     if (entryName.isEmpty()) return@dirChild
-                    // TODO: 找到之后将其复制到自定义的目录，收集起来
                     if (entryName.startsWith(BEE_ROUTER_MAPPING)) {
-                        println("----找到了-[for dirs]->entryName: $entryName")
+                        mappingList.add(entryName)
+                        DocUtils.scanInput(file.inputStream(), docList)
                     }
                     // copy to
                     file.inputStream().use { input ->
@@ -67,22 +74,19 @@ abstract class RouterTask : DefaultTask() {
             // 遍历jar (复制与收集)，其实这里就是其他modules
             jars.get().forEach { file ->
                 JarFile(file.asFile).use { jar ->
-                    println("----jar----> handling: ${jar.name}")
                     jar.entries().iterator().asSequence().filter {
                         !it.isDirectory && it.name.isNotEmpty() && !it.name.contains("META-INF/")
                     }.forEach jarFile@{ entry ->
-                        // TODO: 在这里可以对jar进行自己的处理，收集起来
                         // 找到我们指定的注入类时，将其保存下来，便于后续注入
                         if (entry.name == BEE_ROUTER_NAVIGATION) {
                             jar.getInputStream(entry).use {
                                 injectByteArray = it.readAllBytes()
                             }
-                            println("----已找到控制器->entryName: ${entry.name}")
                             return@jarFile
                         }
                         if (entry.name.startsWith(BEE_ROUTER_MAPPING)) {
-                            println("----找到了-[for jars]->entryName: ${entry.name}")
-                            // 进行自己的操作
+                            mappingList.add(entry.name)
+                            DocUtils.scanInput(jar.getInputStream(entry), docList)
                         }
                         // copy to jar
                         jar.getInputStream(entry).use {
@@ -91,16 +95,27 @@ abstract class RouterTask : DefaultTask() {
                     }
                 }
             }
+
             println("BeeRouter plugin query mapping spend ${System.currentTimeMillis() - startTime} ms")
-            println("--bee-> 开始进行代码插入------>")
-//            checkNotNull(injectByteArray) {
-//                println("请确定你依赖了bee_router")
-//            }
-//            val hackBytes = RouterInject.hackMethod(injectByteArray!!, mappingList)
-//            jarOutput.saveEntry(BEE_ROUTER_CONTROL, ByteArrayInputStream(hackBytes))
-            println("--bee-> 代码插入成功------>")
+            checkNotNull(injectByteArray) {
+                println("Make sure you rely on router_core modules?")
+            }
+            println("BeeRouter-> start router mapping inject------>")
+            val navigationBytes = RouterInject.inject(injectByteArray!!, mappingList)
+            jarOutput.saveEntry(BEE_ROUTER_NAVIGATION, ByteArrayInputStream(navigationBytes))
+
+            val builder = StringBuilder("[")
+            docList.forEach {
+                builder.append(it).append(",")
+            }
+            builder.append("]")
+            val file = File(project.buildDir, "beeRouter.json")
+            file.bufferedWriter().use {
+                it.write(builder.toString())
+            }
+            println("BeeRouter-> router mapping inject success------>")
         }
-        println("BeeRouter plugin inject time spend ${System.currentTimeMillis() - startTime} ms")
+        println("BeeRouter plugin all spend ${System.currentTimeMillis() - startTime} ms")
     }
 
     private fun JarOutputStream.saveEntry(entryName: String, inputStream: InputStream) {
@@ -110,7 +125,7 @@ abstract class RouterTask : DefaultTask() {
     }
 
     companion object {
-        const val BEE_ROUTER_MAPPING = "com/bee/router/mapping/RouterMapping_"
+        const val BEE_ROUTER_MAPPING = "com/bee/router/mapping/_RouterMapping_"
         const val BEE_ROUTER_NAVIGATION = "com/bee/router/core/RouterNavigation.class"
     }
 }

@@ -43,5 +43,5 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
     implementation(project(":bee_router:router_core"))
-    kapt(project(":bee_router:router_processor"))
+    "kapt"(project(":bee_router:router_apt"))
 }

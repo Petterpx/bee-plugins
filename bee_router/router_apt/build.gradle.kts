@@ -10,8 +10,8 @@ java {
 }
 
 dependencies {
-    implementation(project(":bee_router:router_core"))
+    implementation(project(":bee_router:router_annotations"))
     implementation("com.google.auto.service:auto-service:1.1.0")
-//    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.9.1")
     kapt("com.google.auto.service:auto-service:1.1.0")
 }

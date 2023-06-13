@@ -1,85 +1,77 @@
-package com.bee.router.processor
+package com.bee.router.apt.processor
 
 import com.bee.router.annotations.Router
-import com.bee.router.core.RouterData
+import com.bee.router.apt.data.RouterData
 import com.google.auto.service.AutoService
-import javax.annotation.processing.AbstractProcessor
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import javax.annotation.processing.Processor
 import javax.annotation.processing.RoundEnvironment
 import javax.annotation.processing.SupportedAnnotationTypes
-import javax.annotation.processing.SupportedSourceVersion
-import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
 
 /**
- * 路由注解处理器
+ * BeeRouterProcessor
  * @author petterp
  */
 @AutoService(Processor::class)
-@SupportedSourceVersion(SourceVersion.RELEASE_11)
 @SupportedAnnotationTypes("com.bee.router.annotations.Router")
-class RouterProcessor : AbstractProcessor() {
+class RouterProcessor : BaseProcessor() {
 
     // 增量编译的例子：https://blog.csdn.net/qfanmingyiq/article/details/116300913
     override fun process(
         annotations: MutableSet<out TypeElement>,
         roundEnv: RoundEnvironment,
     ): Boolean {
-        if (roundEnv.processingOver()) return false
-        // 获得相应路由mapping管理类与json内容
-        val mapping = mappingManagerToJsonContent(roundEnv) ?: return false
-        writeMappingClass(mapping)
-        println("$TAG-------finish")
-        return false
+        if (roundEnv.processingOver() || annotations.isEmpty()) return false
+        logger.info("-------> start -----")
+        generateRouterMappings(roundEnv)
+        logger.info("------->  end  -----")
+        return true
     }
 
-    private fun mappingManagerToJsonContent(roundEnvironment: RoundEnvironment): Map<String, RouterData>? {
-        // 获取所有标记了@Router注解类的信息
+    private fun generateRouterMappings(roundEnvironment: RoundEnvironment) {
         val elementsAnnotatedWith = roundEnvironment.getElementsAnnotatedWith(Router::class.java)
-        // 当未收集到@Router注解时，跳过
-        if (elementsAnnotatedWith.size < 1) return null
-        println("$TAG-------start")
-        println("$TAG------收集到 ${elementsAnnotatedWith.size} 个使用 [BeeRouter] 的类信息")
+        if (elementsAnnotatedWith.size < 1) return
+        logger.info("-------> 收集到 ${elementsAnnotatedWith.size} 个使用 [BeeRouter] 的类-----")
         val mapping = mutableMapOf<String, RouterData>()
+        val docJsons = JsonArray()
         elementsAnnotatedWith.forEach {
             (it as? TypeElement)?.let { element ->
                 // 获取注解信息
                 element.getAnnotation(Router::class.java)?.apply {
-                    // 获取注解类的全类名
                     val realPath = element.qualifiedName.toString()
-                    // 为下面的mapping表做准备
-                    mapping[url] = RouterData(url, desc, realPath)
-                    println("$TAG--->url:$url---->description:$desc---->className:$realPath")
+                    mapping[url] = RouterData(url, realPath, desc)
+                    val json = JsonObject().apply {
+                        addProperty("url", url)
+                        addProperty("cla", realPath)
+                        addProperty("desc", desc)
+                    }
+                    docJsons.add(json)
+                    logger.info("-------> url:$url, className:$realPath -----")
                 }
             }
         }
-        return mapping
+        writeMappingClass(mapping, docJsons)
     }
 
-    private fun writeMappingClass(mapping: Map<String, RouterData>) {
+    private fun writeMappingClass(mapping: Map<String, RouterData>, docs: JsonArray) {
         val time = System.currentTimeMillis()
-        val className = "RouterMapping_$time"
-
+        val className = "_RouterMapping_$time"
         val mappingFullClassName = "com.bee.router.mapping.$className"
         val source = processingEnv.filer.createSourceFile(mappingFullClassName)
-        val writeMappingClassContent = getMappingClassContent(className, mapping)
+        val writeMappingClassContent = getMappingClassContent(className, mapping, docs)
+        logger.info("-------> mappingClassName:$className -----")
         source.openWriter().use {
             it.write(writeMappingClassContent)
         }
-        println("$TAG-----> mappingClassName = $className")
-//        val docName = "BeeRouterMapping_doc_$time.json"
-//        val docFile = File(File(source.toUri().path).parent, docName)
-//        docFile.bufferedWriter().use {
-//            it.write(jsonArray.toString())
-//        }
-//        println("$TAG-----> mappingClassDoc = $docName")
     }
 
     private fun getMappingClassContent(
         className: String,
-        map: Map<String, RouterData>
+        map: Map<String, RouterData>,
+        docs: JsonArray
     ): String {
-        // 将要自动生成的类的类名
         val builder = StringBuilder()
         builder.append("package com.bee.router.mapping;\n")
         builder.append("import androidx.annotation.Keep;\n\n")
@@ -92,7 +84,8 @@ class RouterProcessor : AbstractProcessor() {
         )
             .append("@Keep\n")
             .append("public class ").append(className)
-            .append(" implements com.bee.router.core._IRouter ").append(" {\n")
+            .append(" implements com.bee.router.core._IRouter ").append(" {\n\n")
+            .append(String.format("    private final String params = \"%s\";\n\n",docs.toString().replace("\"", "\\\"")))
             .append("    @Override\n")
             .append("    public void init(Map<String, com.bee.router.core.RouterData> map) {\n")
         if (map.isNotEmpty()) {
@@ -111,8 +104,4 @@ class RouterProcessor : AbstractProcessor() {
 //            addProperty("description", description)
 //            addProperty("realPath", realPath)
 //        }
-
-    companion object {
-        private const val TAG = "BeeRouterProcessor"
-    }
 }

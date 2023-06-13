@@ -4,6 +4,7 @@ package com.bee.router
  *
  * @author petterp
  */
-open class RouterExtension {
-    var wikiDir: String = ""
+abstract class RouterExtension {
+    abstract val enableDoc: Boolean
+    abstract val docPath: String
 }
