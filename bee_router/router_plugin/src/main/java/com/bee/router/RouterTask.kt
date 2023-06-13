@@ -1,13 +1,17 @@
 package com.bee.router
 
-import com.bee.router.utils.RouterInject
-import com.bee.router.utils.DocUtils
+import com.bee.router.ext.RouterInject
+import com.bee.router.ext.RouterDocExt
+import com.bee.router.ext.RouterDocExt.BEE_ROUTER_DOC_DIR
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.ByteArrayInputStream
@@ -26,18 +30,22 @@ abstract class RouterTask : DefaultTask() {
     @get:InputFiles
     abstract val jars: ListProperty<RegularFile>
 
-//    @set:Input
-//    abstract var enableDoc: Property<String>
-//    abstract var docPath:Property<String>
+    @get:Input
+    abstract val enableDoc: Property<Boolean>
 
     @get:InputFiles
     abstract val dirs: ListProperty<Directory>
 
+    @get:OutputDirectory
+    abstract val docOut: RegularFileProperty
+
     @get:OutputFile
     abstract val output: RegularFileProperty
 
+
     @TaskAction
     fun taskAction() {
+        val isEnableDoc = enableDoc.get()
         val startTime = System.currentTimeMillis()
         val leftSlash = File.separator == "/"
         // 输入的 jar、aar、源码
@@ -62,7 +70,7 @@ abstract class RouterTask : DefaultTask() {
                     if (entryName.isEmpty()) return@dirChild
                     if (entryName.startsWith(BEE_ROUTER_MAPPING)) {
                         mappingList.add(entryName)
-                        DocUtils.scanInput(file.inputStream(), docList)
+                        RouterDocExt.scanInput(isEnableDoc, file, docList)
                     }
                     // copy to
                     file.inputStream().use { input ->
@@ -86,7 +94,7 @@ abstract class RouterTask : DefaultTask() {
                         }
                         if (entry.name.startsWith(BEE_ROUTER_MAPPING)) {
                             mappingList.add(entry.name)
-                            DocUtils.scanInput(jar.getInputStream(entry), docList)
+                            RouterDocExt.scanInput(isEnableDoc, jar, entry, docList)
                         }
                         // copy to jar
                         jar.getInputStream(entry).use {
@@ -103,17 +111,8 @@ abstract class RouterTask : DefaultTask() {
             println("BeeRouter-> start router mapping inject------>")
             val navigationBytes = RouterInject.inject(injectByteArray!!, mappingList)
             jarOutput.saveEntry(BEE_ROUTER_NAVIGATION, ByteArrayInputStream(navigationBytes))
-
-            val builder = StringBuilder("[")
-            docList.forEach {
-                builder.append(it).append(",")
-            }
-            builder.append("]")
-            val file = File(project.buildDir, "beeRouter.json")
-            file.bufferedWriter().use {
-                it.write(builder.toString())
-            }
             println("BeeRouter-> router mapping inject success------>")
+            RouterDocExt.createDoc(isEnableDoc, "${project.buildDir}/$BEE_ROUTER_DOC_DIR", docList)
         }
         println("BeeRouter plugin all spend ${System.currentTimeMillis() - startTime} ms")
     }

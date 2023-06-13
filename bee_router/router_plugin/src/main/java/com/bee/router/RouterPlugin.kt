@@ -4,9 +4,11 @@ import com.android.build.api.artifact.ScopedArtifact
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.api.variant.ScopedArtifacts
 import com.android.build.gradle.AppPlugin
+import com.bee.router.ext.RouterDocExt.BEE_ROUTER_DOC_DIR
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.register
+import java.io.File
 
 /**
  * Bee Router Plugin
@@ -16,12 +18,14 @@ class RouterPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         if (!project.plugins.hasPlugin(AppPlugin::class.java)) return
         project.extensions.create(BEE_ROUTER_EXTENSION, RouterExtension::class.java)
-        // 文档是通过读取mapping,class Node生成
         project.extensions.getByType(AndroidComponentsExtension::class.java).apply {
             onVariants {
-                project.extensions.getByName(BEE_ROUTER_EXTENSION) as RouterExtension
+                val ext = project.extensions.getByName(BEE_ROUTER_EXTENSION) as RouterExtension
                 val taskProvider =
-                    project.tasks.register<RouterTask>("${it.name}$BEE_ROUTER_TASK_NAME")
+                    project.tasks.register<RouterTask>("${it.name}$BEE_ROUTER_TASK_NAME") {
+                        enableDoc.set(ext.enableDoc)
+                        docOut.set(File("${project.buildDir}/$BEE_ROUTER_DOC_DIR"))
+                    }
                 it.artifacts.forScope(ScopedArtifacts.Scope.ALL).use(taskProvider)
                     .toTransform(
                         ScopedArtifact.CLASSES,
@@ -34,9 +38,7 @@ class RouterPlugin : Plugin<Project> {
     }
 
     companion object {
-        const val BEE_ROUTER_EXTENSION = "router"
+        const val BEE_ROUTER_EXTENSION = "beeRouter"
         const val BEE_ROUTER_TASK_NAME = "BeeRouterTask"
-        const val BEE_ROUTER_MAPPING_DIR = "bee_router/mapping"
-        const val BEE_ROUTER_DOC_PATH = "bee_router/routerDoc.md"
     }
 }

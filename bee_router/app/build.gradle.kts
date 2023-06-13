@@ -5,6 +5,10 @@ plugins {
     id("kotlin-kapt")
 }
 
+beeRouter {
+    enableDoc = true
+}
+
 android {
     namespace = "com.bee.router_simple"
     compileSdk = 33

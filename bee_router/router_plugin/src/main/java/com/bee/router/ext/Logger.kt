@@ -1,4 +1,4 @@
-package com.bee.router.utils
+package com.bee.router.ext
 
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
@@ -8,7 +8,7 @@ object Logger {
     private var tag: String = ""
     fun init(project: Project, tag: String) {
         gradleLogger = project.logger
-        com.bee.router.utils.Logger.tag = tag
+        com.bee.router.ext.Logger.tag = tag
     }
 
     fun i(info: String) {
