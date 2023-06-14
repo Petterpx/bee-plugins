@@ -9,6 +9,7 @@ import javax.annotation.processing.Processor
 import javax.annotation.processing.RoundEnvironment
 import javax.annotation.processing.SupportedAnnotationTypes
 import javax.lang.model.element.TypeElement
+import kotlin.math.abs
 
 /**
  * BeeRouterProcessor
@@ -56,12 +57,13 @@ class RouterProcessor : BaseProcessor() {
     }
 
     private fun writeMappingClass(mapping: Map<String, RouterData>, docs: JsonArray) {
-        val time = System.currentTimeMillis()
-        val className = "_RouterMapping_$time"
-        val mappingFullClassName = "com.bee.router.mapping.$className"
-        val source = processingEnv.filer.createSourceFile(mappingFullClassName)
-        val writeMappingClassContent = getMappingClassContent(className, mapping, docs)
+        if (mapping.isEmpty()) return
+        val createSourceFile = processingEnv.filer.createSourceFile("$PACKAGE$POINT${PREFIX_ROUTER_MAP}temp")
+        val path = createSourceFile.toUri().path
+        val className = "$PREFIX_ROUTER_MAP${abs(path.hashCode())}"
         logger.info("-------> mappingClassName:$className -----")
+        val source = processingEnv.filer.createSourceFile(className)
+        val writeMappingClassContent = getMappingClassContent(className, mapping, docs)
         source.openWriter().use {
             it.write(writeMappingClassContent)
         }
@@ -85,7 +87,12 @@ class RouterProcessor : BaseProcessor() {
             .append("@Keep\n")
             .append("public class ").append(className)
             .append(" implements com.bee.router.core._IRouter ").append(" {\n\n")
-            .append(String.format("    private final String params = \"%s\";\n\n",docs.toString().replace("\"", "\\\"")))
+            .append(
+                String.format(
+                    "    private final String params = \"%s\";\n\n",
+                    docs.toString().replace("\"", "\\\"")
+                )
+            )
             .append("    @Override\n")
             .append("    public void init(Map<String, com.bee.router.core.RouterData> map) {\n")
         if (map.isNotEmpty()) {
@@ -104,4 +111,10 @@ class RouterProcessor : BaseProcessor() {
 //            addProperty("description", description)
 //            addProperty("realPath", realPath)
 //        }
+
+    companion object {
+        private const val POINT = "."
+        private const val PREFIX_ROUTER_MAP = "_RouterMapping_"
+        private const val PACKAGE = "com.bee.router.mapping"
+    }
 }
