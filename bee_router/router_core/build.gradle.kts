@@ -2,6 +2,7 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
 }
+apply(from = "${rootProject.rootDir}/.buildscript/maven_android.gradle")
 
 android {
     namespace = "com.bee.router.core"
@@ -10,7 +11,6 @@ android {
     defaultConfig {
         minSdk = 21
         targetSdk = 33
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }

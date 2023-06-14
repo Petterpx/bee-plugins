@@ -1,6 +1,5 @@
-apply plugin: 'java-gradle-plugin'
 Properties properties = new Properties()
-properties.load(project.rootProject.file('gradle.properties').newDataInputStream())
+properties.load(project.file('gradle.properties').newDataInputStream())
 def isPushMaven = properties.getOrDefault("IS_PUSH_MAVEN", true)
 def POM_URL = properties.getProperty("POM_URL")
 def GROUP_ID = properties.getProperty("GROUP_ID")
@@ -8,16 +7,16 @@ def DESCRIPTION = properties.getProperty("DESCRIPTION")
 def VERSION_NAME = properties.getProperty("VERSION_NAME")
 def POM_ARTIFACT_ID = properties.getProperty("POM_ARTIFACT_ID")
 
-def GRADLE_PLUGIN_ID = properties.getProperty("GRADLE_PLUGIN_ID")
-def GRADLE_IMP_CLASS = properties.getProperty("GRADLE_IMP_CLASS")
-
 if (isPushMaven) {
     apply plugin: 'maven-publish'
     publishing {
         publications {
-            maven(MavenPublication) {
-                artifactId = POM_ARTIFACT_ID
+            release(MavenPublication) {
                 from components.java
+                groupId = GROUP_ID
+                artifactId = POM_ARTIFACT_ID
+                version = VERSION_NAME
+                description = DESCRIPTION
             }
         }
         repositories {
@@ -27,16 +26,3 @@ if (isPushMaven) {
         }
     }
 }
-
-gradlePlugin {
-    plugins {
-        routerPlugin {
-            id = GRADLE_PLUGIN_ID
-            implementationClass = GRADLE_IMP_CLASS
-        }
-    }
-}
-
-group = GROUP_ID
-description = DESCRIPTION
-version = VERSION_NAME

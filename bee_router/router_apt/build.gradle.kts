@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
     id("kotlin-kapt")
 }
+apply(from = "${rootProject.rootDir}/.buildscript/maven_java.gradle")
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11

@@ -1,0 +1,30 @@
+Properties properties = new Properties()
+properties.load(project.file('gradle.properties').newDataInputStream())
+def isPushMaven = properties.getOrDefault("IS_PUSH_MAVEN", true)
+def POM_URL = properties.getProperty("POM_URL")
+def GROUP_ID = properties.getProperty("GROUP_ID")
+def DESCRIPTION = properties.getProperty("DESCRIPTION")
+def VERSION_NAME = properties.getProperty("VERSION_NAME")
+def POM_ARTIFACT_ID = properties.getProperty("POM_ARTIFACT_ID")
+
+afterEvaluate {
+    if (isPushMaven) {
+        apply plugin: 'maven-publish'
+        publishing {
+            publications {
+                release(MavenPublication) {
+                    from components.release
+                    groupId = GROUP_ID
+                    artifactId = POM_ARTIFACT_ID
+                    version = VERSION_NAME
+                    description = DESCRIPTION
+                }
+            }
+            repositories {
+                maven {
+                    url = uri("$POM_URL")
+                }
+            }
+        }
+    }
+}
