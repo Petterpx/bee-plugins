@@ -22,7 +22,6 @@ fun main() {
     val cw = ClassWriter(cr, COMPUTE_MAXS)
     val cv = ProfileClassAdapter(cw)
     cr.accept(cv, ClassReader.EXPAND_FRAMES)
-
     FileOutputStream(outClassPath).use {
         it.write(cw.toByteArray())
     }
