@@ -3,13 +3,25 @@ package com.bee.analysis
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.tree.ClassNode
 
 /**
  *
  * @author petterp
  */
-class AnalysisClassVisitor(private val classVisitor: ClassVisitor?) : ClassNode(Opcodes.ASM9) {
+class AnalysisClassVisitor(cv: ClassVisitor?, private val buildType: String) :
+    ClassVisitor(Opcodes.ASM9, cv) {
+    private var className: String = ""
+    override fun visit(
+        version: Int,
+        access: Int,
+        name: String?,
+        signature: String?,
+        superName: String?,
+        interfaces: Array<out String>?
+    ) {
+        super.visit(version, access, name, signature, superName, interfaces)
+        this.className = name ?: ""
+    }
 
     override fun visitMethod(
         access: Int,
@@ -18,10 +30,15 @@ class AnalysisClassVisitor(private val classVisitor: ClassVisitor?) : ClassNode(
         signature: String?,
         exceptions: Array<out String>?,
     ): MethodVisitor {
-        return AnalysisMethodVisitor(this.name, access, name, descriptor, signature, exceptions)
-    }
-
-    override fun visitEnd() {
-        accept(classVisitor)
+        return AnalysisMethodVisitor(
+            className,
+            access,
+            name,
+            descriptor,
+            signature,
+            exceptions
+        ).apply {
+            buildType = this@AnalysisClassVisitor.buildType
+        }
     }
 }

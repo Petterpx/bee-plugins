@@ -16,6 +16,8 @@ class AnalysisMethodVisitor(
     exceptions: Array<out String>?,
 ) : MethodNode(Opcodes.ASM9, access, name, descriptor, signature, exceptions) {
 
+    var buildType: String = ""
+
     override fun visitMethodInsn(
         opcodeAndSource: Int,
         owner: String,
@@ -24,6 +26,6 @@ class AnalysisMethodVisitor(
         isInterface: Boolean,
     ) {
         super.visitMethodInsn(opcodeAndSource, owner, name, descriptor, isInterface)
-        MethodAnalysisUtils.filterAndAddMethod(className, this.name, owner, name)
+        MethodAnalysisUtils.filterAndAddMethod(buildType, className, this.name, owner, name)
     }
 }

@@ -19,26 +19,28 @@ class AnalysisPlugin : Plugin<Project> {
 
         val variants = mutableListOf<String>()
         val androidCom = project.extensions.getByType(AndroidComponentsExtension::class.java)
-        androidCom.onVariants {
-            variants.add(String.format("transform%sClassesWithAsm", it.name.capitalize()))
-            it.instrumentation.apply {
+        androidCom.onVariants { variant ->
+            val name = variant.name
+            variants.add(name)
+            variant.instrumentation.apply {
                 transformClassesWith(
                     AnalysisTransForm::class.java,
                     InstrumentationScope.PROJECT,
-                ) {}
+                ) { params ->
+                    params.buildType.set(name)
+                }
                 setAsmFramesComputationMode(FramesComputationMode.COPY_FRAMES)
             }
         }
         project.afterEvaluate {
+            if (variants.isEmpty()) return@afterEvaluate
             val extension = (project.properties[ANALYSIS_EXTENSION] as RuleExtension)
             MethodAnalysisUtils.initConfig(extension)
-            if (variants.isEmpty()) return@afterEvaluate
-            tasks.firstOrNull { task ->
-                variants.any {
-                    task.name.contains(it)
+            variants.forEach { type ->
+                val taskName = String.format("transform%sClassesWithAsm", type.capitalize())
+                tasks.getByName(taskName).doLast {
+                    MethodAnalysisUtils.end(type)
                 }
-            }?.doLast {
-                MethodAnalysisUtils.end()
             }
         }
     }
